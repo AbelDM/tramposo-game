@@ -29,7 +29,7 @@ const AboutModal: React.FC<{ isOpen: boolean; onClose: () => void; }> = ({ isOpe
                     <div className="pt-4 text-sm text-slate-500 dark:text-slate-400">
                          <p>Versión 1.1.0</p>
                          <p>Creado con <span role="img" aria-label="corazón" className="text-rose-500">❤️</span> por AbelDM</p>
-                         <p className="mt-2">Última actualización: 24 de Julio, 2024</p>
+                         <p className="mt-2">Última actualización: 17 de noviembre, 2025</p>
                     </div>
                 </div>
                 
