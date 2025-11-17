@@ -45,6 +45,18 @@ const App: React.FC = () => {
     const handleStartGame = useCallback(async (settings: GameSettings, playerNames: string[]) => {
         setIsLoading(true);
         try {
+            if (settings.category === "Aleatorio (IA)") {
+                // In a browser environment, we must use window.aistudio to select an API key.
+                const aistudio = (window as any).aistudio;
+                if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
+                    const hasKey = await aistudio.hasSelectedApiKey();
+                    if (!hasKey) {
+                        await aistudio.openSelectKey();
+                        // Per guidelines, assume key selection is successful and proceed.
+                    }
+                }
+            }
+
             const shuffledPlayers = [...playerNames].sort(() => Math.random() - 0.5);
             const tramposoNames = shuffledPlayers.slice(0, settings.numTramposos);
             
@@ -134,8 +146,8 @@ const App: React.FC = () => {
             let errorMessage = "No se pudieron generar las palabras desde la IA. ";
 
             if (error instanceof Error) {
-                if (error.message.toLowerCase().includes("api key")) {
-                    errorMessage += "Puede haber un problema con la configuración de la API. ";
+                if (error.message.toLowerCase().includes("api key") || error.message.includes("requested entity was not found")) {
+                    errorMessage += "Se requiere una clave de API. Por favor, selecciona una clave válida e inténtalo de nuevo. ";
                 } else if (error instanceof SyntaxError) {
                     errorMessage += "La respuesta del modelo no tuvo el formato esperado (JSON inválido). ";
                 } else if (error.message.includes("Generated words are empty")) {
@@ -148,7 +160,7 @@ const App: React.FC = () => {
                 errorMessage += "Ocurrió un error desconocido. ";
             }
 
-            errorMessage += "Por favor, intenta de nuevo o elige otra categoría.";
+            errorMessage += "Puedes reintentarlo o elegir otra categoría.";
             alert(errorMessage);
         } finally {
             setIsLoading(false);
