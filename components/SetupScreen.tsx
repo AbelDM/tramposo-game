@@ -58,7 +58,7 @@ const tutorialSteps = [
     { selector: '[data-tutorial-id="game-mode"]', title: '1. Modo de Juego', content: 'Elige entre el modo Clásico (el tramposo debe adivinar la palabra) o Misterioso (todos tienen una palabra y deben encontrar la que es diferente).', placement: 'bottom' as const },
     { selector: '[data-tutorial-id="players"]', title: '2. Jugadores', content: 'Aquí puedes añadir, eliminar y cambiar el nombre de los jugadores. Se necesita un mínimo de 3 para jugar.', placement: 'bottom' as const },
     { selector: '[data-tutorial-id="tramposos"]', title: '3. Número de Tramposos', content: 'Define cuántos tramposos habrá en la partida. ¡A más tramposos, más caos!', placement: 'top' as const },
-    { selector: '[data-tutorial-id="category"]', title: '4. Categoría de Palabras', content: 'Elige un tema para la palabra secreta. ¡Prueba "Aleatorio" para obtener una palabra de cualquier categoría al azar!', placement: 'top' as const },
+    { selector: '[data-tutorial-id="category"]', title: '4. Categoría de Palabras', content: 'Elige un tema para la palabra secreta. ¡Prueba "Aleatorio (IA)" para que la IA genere palabras únicas!', placement: 'top' as const },
     { selector: '[data-tutorial-id="timer"]', title: '5. Tiempo de Debate', content: 'Establece un límite de tiempo para que todos discutan y den sus pistas antes de la votación.', placement: 'top' as const },
     { selector: '[data-tutorial-id="how-to-play"]', title: 'Cómo Jugar', content: 'Si alguna vez necesitas un recordatorio de las reglas completas, puedes encontrarlas aquí.', placement: 'top' as const },
     { selector: '[data-tutorial-id="start-game"]', title: '¡A Jugar!', content: 'Cuando todo esté listo, presiona este botón para comenzar la partida. ¡Buena suerte!', placement: 'top' as const },
@@ -487,7 +487,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartGame, isLoading = fals
                             {isLoading ? (
                                 <>
                                     <LoadingSpinnerIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
-                                    INICIANDO...
+                                    GENERANDO PALABRAS...
                                 </>
                             ) : 'COMENZAR JUEGO'}
                         </button>
