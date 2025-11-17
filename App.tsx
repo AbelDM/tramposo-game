@@ -6,7 +6,6 @@ import RoleRevealScreen from './components/RoleRevealScreen';
 import GameScreen from './components/GameScreen';
 import VotingScreen from './components/VotingScreen';
 import EndScreen from './components/EndScreen';
-import { GoogleGenAI, Type } from "@google/genai";
 
 
 const initialState: GameState = {
@@ -42,21 +41,9 @@ const App: React.FC = () => {
         setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
     };
 
-    const handleStartGame = useCallback(async (settings: GameSettings, playerNames: string[]) => {
+    const handleStartGame = useCallback((settings: GameSettings, playerNames: string[]) => {
         setIsLoading(true);
         try {
-            if (settings.category === "Aleatorio (IA)") {
-                // In a browser environment, we must use window.aistudio to select an API key.
-                const aistudio = (window as any).aistudio;
-                if (aistudio && typeof aistudio.hasSelectedApiKey === 'function') {
-                    const hasKey = await aistudio.hasSelectedApiKey();
-                    if (!hasKey) {
-                        await aistudio.openSelectKey();
-                        // Per guidelines, assume key selection is successful and proceed.
-                    }
-                }
-            }
-
             const shuffledPlayers = [...playerNames].sort(() => Math.random() - 0.5);
             const tramposoNames = shuffledPlayers.slice(0, settings.numTramposos);
             
@@ -68,66 +55,33 @@ const App: React.FC = () => {
 
             let secretWord = '';
             let tramposoWord: string | undefined = undefined;
+            const useMysteryWords = settings.gameMode === GameMode.Mystery || (settings.gameMode === GameMode.Classic && settings.tramposoHint);
 
-            if (settings.category === "Aleatorio (IA)") {
-                const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-                const needsPair = settings.gameMode === GameMode.Mystery || (settings.gameMode === GameMode.Classic && settings.tramposoHint);
-
-                if (needsPair) {
-                    const prompt = "Genera una lista de 10 pares de palabras en español para un juego de roles ocultos. Cada par debe consistir en un sustantivo común y un sustantivo relacionado pero diferente. El segundo puede ser una pista para el primero. Devuelve la respuesta como un array de arrays de strings JSON, como [['palabra1', 'pista1'], ['palabra2', 'pista2']].";
-                    const response = await ai.models.generateContent({
-                        model: 'gemini-2.5-flash',
-                        contents: prompt,
-                        config: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: Type.ARRAY,
-                                items: {
-                                    type: Type.ARRAY,
-                                    items: { type: Type.STRING },
-                                },
-                            },
-                        },
-                    });
-                    const wordPairs = JSON.parse(response.text.trim());
-                    if (!wordPairs || wordPairs.length === 0) throw new Error("Generated words are empty.");
-                    const wordPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+            if (settings.category === "Aleatorio") {
+                 if (useMysteryWords) {
+                    const allWords = Object.entries(MYSTERY_WORD_CATEGORIES)
+                        .filter(([key]) => key !== 'Aleatorio')
+                        .flatMap(([, words]) => words);
+                    if (!allWords || allWords.length === 0) throw new Error("No hay palabras en las categorías de misterio.");
+                    const wordPair = allWords[Math.floor(Math.random() * allWords.length)];
                     secretWord = wordPair[0];
                     tramposoWord = wordPair[1];
-                } else { // Classic mode without hint
-                    const prompt = "Genera una lista de 20 sustantivos aleatorios en español para un juego de roles ocultos. Deben ser de temática general, moderadamente difíciles y no demasiado obvios. Devuelve la respuesta como un array de strings JSON.";
-                     const response = await ai.models.generateContent({
-                        model: 'gemini-2.5-flash',
-                        contents: prompt,
-                        config: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: Type.ARRAY,
-                                items: { type: Type.STRING },
-                            },
-                        },
-                    });
-                    const words = JSON.parse(response.text.trim());
-                    if (!words || words.length === 0) throw new Error("Generated words are empty.");
-                    secretWord = words[Math.floor(Math.random() * words.length)];
+                } else {
+                    const allWords = Object.entries(WORD_CATEGORIES)
+                        .filter(([key]) => key !== 'Aleatorio')
+                        .flatMap(([, words]) => words);
+                    if (!allWords || allWords.length === 0) throw new Error("No hay palabras en las categorías clásicas.");
+                    secretWord = allWords[Math.floor(Math.random() * allWords.length)];
                 }
-
             } else {
-                 if (settings.gameMode === GameMode.Mystery) {
+                 if (useMysteryWords) {
                     const categoryWords = MYSTERY_WORD_CATEGORIES[settings.category];
                     const wordPair = categoryWords[Math.floor(Math.random() * categoryWords.length)];
                     secretWord = wordPair[0];
                     tramposoWord = wordPair[1];
-                } else { // Classic mode
-                    if (settings.tramposoHint) {
-                        const categoryWords = MYSTERY_WORD_CATEGORIES[settings.category];
-                        const wordPair = categoryWords[Math.floor(Math.random() * categoryWords.length)];
-                        secretWord = wordPair[0];
-                        tramposoWord = wordPair[1];
-                    } else {
-                        const categoryWords = WORD_CATEGORIES[settings.category];
-                        secretWord = categoryWords[Math.floor(Math.random() * categoryWords.length)];
-                    }
+                } else {
+                    const categoryWords = WORD_CATEGORIES[settings.category];
+                    secretWord = categoryWords[Math.floor(Math.random() * categoryWords.length)];
                 }
             }
 
@@ -142,26 +96,8 @@ const App: React.FC = () => {
                 winner: null,
             });
         } catch (error) {
-            console.error("Error al iniciar el juego o generar palabras:", error);
-            let errorMessage = "No se pudieron generar las palabras desde la IA. ";
-
-            if (error instanceof Error) {
-                if (error.message.toLowerCase().includes("api key") || error.message.includes("requested entity was not found")) {
-                    errorMessage += "Se requiere una clave de API. Por favor, selecciona una clave válida e inténtalo de nuevo. ";
-                } else if (error instanceof SyntaxError) {
-                    errorMessage += "La respuesta del modelo no tuvo el formato esperado (JSON inválido). ";
-                } else if (error.message.includes("Generated words are empty")) {
-                    errorMessage += "La IA no devolvió ninguna palabra. ";
-                }
-                else {
-                    errorMessage += "Ocurrió un error de red o del servidor. ";
-                }
-            } else {
-                errorMessage += "Ocurrió un error desconocido. ";
-            }
-
-            errorMessage += "Puedes reintentarlo o elegir otra categoría.";
-            alert(errorMessage);
+            console.error("Error al iniciar el juego:", error);
+            alert("Ocurrió un error al iniciar el juego. Por favor, inténtalo de nuevo.");
         } finally {
             setIsLoading(false);
         }
