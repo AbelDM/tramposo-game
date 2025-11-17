@@ -248,7 +248,7 @@ const App: React.FC = () => {
 
     return (
         <main className="text-slate-800 dark:text-slate-200 min-h-screen flex flex-col items-center p-4 transition-colors duration-300">
-            <div className="w-full max-w-md mx-auto flex-grow flex flex-col pt-1 pb-6">
+            <div className="w-full max-w-md mx-auto flex-grow flex flex-col pt-0 pb-0">
                 {renderScreen()}
             </div>
         </main>
