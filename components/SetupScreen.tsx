@@ -338,7 +338,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onStartGame, isLoading = fals
 
     return (
         <div className="flex flex-col h-full">
-            <div className="w-full max-w-md mx-auto bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg space-y-6 animate-fade-in transition-colors duration-300 ring-1 ring-black/5 dark:ring-white/10 flex-grow overflow-y-auto pb-32">
+            <div className="w-full max-w-md mx-auto bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm px-6 pt-2 pb-6 rounded-2xl shadow-lg space-y-6 animate-fade-in transition-colors duration-300 ring-1 ring-black/5 dark:ring-white/10 flex-grow overflow-y-auto pb-32">
                 <div data-tutorial-id="title" className="text-center mb-2">
                     <LogoIcon className="w-20 h-20 mx-auto text-violet-600 dark:text-violet-400" />
                     <h1 className="text-3xl font-bold font-orbitron tracking-wider text-gradient -mt-2">TRAMPOSO</h1>
